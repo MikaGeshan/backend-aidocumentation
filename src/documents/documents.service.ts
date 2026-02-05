@@ -85,8 +85,10 @@ export class DocumentsService {
   private async parseFile(buffer: Buffer, mimeType: string): Promise<string> {
     switch (mimeType) {
       case 'application/pdf': {
-        const data = new PDFParse(buffer);
-        return data.text;
+        const parser = new PDFParse(buffer);
+        const result = await parser.getText();
+        await parser.destroy();
+        return result.text;
       }
 
       case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {
