@@ -9,8 +9,12 @@ export class GoogleDriveService {
   private drive: drive_v3.Drive;
 
   constructor() {
+    const credentials = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+    if (!credentials) {
+      throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON is not set');
+    }
     const auth = new google.auth.GoogleAuth({
-      keyFile: process.env.GOOGLE_SERVICE_ACCOUNT_JSON,
+      credentials: JSON.parse(credentials),
       scopes: ['https://www.googleapis.com/auth/drive'],
     });
 
