@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { LlmService } from 'src/llm/llm.service';
-import { QdrantService } from 'src/qdrant/qdrant.service';
+import { LlmService } from '../llm/llm.service';
+import { QdrantService } from '../qdrant/qdrant.service';
 
 @Injectable()
 export class AiService {

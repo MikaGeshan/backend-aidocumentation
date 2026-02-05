@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { GoogleDriveService } from 'src/drive/drive.service';
-import { LlmService } from 'src/llm/llm.service';
-import { QdrantService } from 'src/qdrant/qdrant.service';
+import { GoogleDriveService } from '../drive/drive.service';
+import { LlmService } from '../llm/llm.service';
+import { QdrantService } from '../qdrant/qdrant.service';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
 import { v4 as uuid } from 'uuid';
