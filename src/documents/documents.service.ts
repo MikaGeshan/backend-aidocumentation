@@ -2,9 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { GoogleDriveService } from '../drive/drive.service';
 import { LlmService } from '../llm/llm.service';
 import { QdrantService } from '../qdrant/qdrant.service';
-import * as pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
 import { v4 as uuid } from 'uuid';
+import { PDFParse } from 'pdf-parse';
 
 interface GoogleDriveFile {
   id?: string | null;
@@ -85,7 +85,7 @@ export class DocumentsService {
   private async parseFile(buffer: Buffer, mimeType: string): Promise<string> {
     switch (mimeType) {
       case 'application/pdf': {
-        const data = await pdfParse(buffer);
+        const data = await PDFParse(buffer);
         return data.text;
       }
 
