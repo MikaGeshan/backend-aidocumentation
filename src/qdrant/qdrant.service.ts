@@ -23,6 +23,22 @@ export class QdrantService {
     });
   }
 
+  async ensureCollection(): Promise<void> {
+    const collections = await this.client.getCollections();
+    const exists = collections.collections.some(
+      (c) => c.name === this.COLLECTION,
+    );
+
+    if (exists) return;
+
+    await this.client.createCollection(this.COLLECTION, {
+      vectors: {
+        size: 1536,
+        distance: 'Cosine',
+      },
+    });
+  }
+
   async upsertChunks(
     points: {
       id: string;

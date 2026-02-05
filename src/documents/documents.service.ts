@@ -7,9 +7,9 @@ import mammoth from 'mammoth';
 import { v4 as uuid } from 'uuid';
 
 interface GoogleDriveFile {
-  id: string;
-  name: string;
-  mimeType: string;
+  id?: string | null;
+  name?: string | null;
+  mimeType?: string | null;
 }
 
 @Injectable()
@@ -47,25 +47,23 @@ export class DocumentsService {
     file: GoogleDriveFile,
     subfolderId: string,
   ): Promise<void> {
-    if (!file.id) return;
+    if (!file.id || !file.name || !file.mimeType) return;
 
     this.logger.log(`Indexing file: ${file.name}`);
 
-    // 1. Download file
-    const buffer = await this.googleDriveService.downloadFile(file.id);
+    const buffer = await this.googleDriveService.downloadFile(
+      file.id,
+      file.name,
+    );
 
-    // 2. Parse content
     const text = await this.parseFile(buffer, file.mimeType);
     if (!text.trim()) return;
 
-    // 3. Chunk text
     const chunks = this.chunkText(text);
-    if (chunks.length === 0) return;
+    if (!chunks.length) return;
 
-    // 4. Generate embeddings
     const embeddings = await this.llmService.embedTexts(chunks);
 
-    // 5. Store vectors in Qdrant
     await this.qdrantService.upsertChunks(
       chunks.map((chunk, i) => ({
         id: uuid(),
@@ -79,8 +77,6 @@ export class DocumentsService {
         },
       })),
     );
-
-    this.logger.log(`Indexed ${chunks.length} chunks from ${file.name}`);
   }
 
   /**
