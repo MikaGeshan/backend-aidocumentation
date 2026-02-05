@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  backend:
+    build: .
+    container_name: nest-backend
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env
+    depends_on:
+      - supabase
+    networks:
+      - backend-network
+
+  supabase:
+    image: supabase/postgres:15.3.0
+    container_name: supabase-db
+    environment:
+      POSTGRES_PASSWORD: PfrVxcBi0q3mvLl2
+      POSTGRES_USER: MikaGeshan
+      POSTGRES_DB: ai-documentation
+    ports:
+      - '5432:5432'
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    driver: bridge
