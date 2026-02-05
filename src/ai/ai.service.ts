@@ -37,10 +37,10 @@ export class AiService {
 
     return {
       answer,
-      sources: results.map,((r)=>({
+      sources: results.map((r) => ({
         fileName: r.payload.fileName,
         chunkIndex: r.payload.chunkIndex,
-      }))
+      })),
     };
   }
 }
