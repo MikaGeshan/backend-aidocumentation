@@ -4,7 +4,7 @@ import { LlmService } from '../llm/llm.service';
 import { QdrantService } from '../qdrant/qdrant.service';
 import mammoth from 'mammoth';
 import { randomUUID } from 'crypto';
-import { PDFParse } from 'pdf-parse';
+import pdf from 'pdf-parse';
 
 interface GoogleDriveFile {
   id?: string | null;
@@ -85,10 +85,8 @@ export class DocumentsService {
   private async parseFile(buffer: Buffer, mimeType: string): Promise<string> {
     switch (mimeType) {
       case 'application/pdf': {
-        const parser = new PDFParse(buffer);
-        const result = await parser.getText();
-        await parser.destroy();
-        return result.text;
+        const data = await pdf(buffer);
+        return data.text;
       }
 
       case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {
