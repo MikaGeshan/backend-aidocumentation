@@ -7,6 +7,7 @@ import { UsersModule } from '../users/users.module';
 import { AuthModule } from '../auth/auth.module';
 import { SupabaseModule } from '../db/supabase.module';
 import { GoogleDriveModule } from '../drive/drive.module';
+import { DocumentsModule } from 'src/documents/documents.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { GoogleDriveModule } from '../drive/drive.module';
     UsersModule,
     AuthModule,
     GoogleDriveModule,
+    DocumentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
