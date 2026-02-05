@@ -8,8 +8,9 @@ import {
   Param,
   Res,
 } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { GoogleDriveService } from './drive.service';
+import { Type } from 'class-transformer';
 
 @Controller('drive')
 export class GoogleDriveController {
