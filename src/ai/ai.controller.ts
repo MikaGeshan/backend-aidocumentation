@@ -8,7 +8,7 @@ export class AiController {
   @Post('chat')
   async chat(
     @Body('question') question: string,
-  ): Promise<{ answer: string; sources: unkown[] }> {
+  ): Promise<{ answer: string; sources: unknown[] }> {
     return this.aiService.chat(question);
   }
 }
