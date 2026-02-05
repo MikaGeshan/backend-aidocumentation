@@ -1,6 +1,6 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { SUPABASE_CLIENT } from 'src/db/supabase.provider';
+import { SUPABASE_CLIENT } from '../../db/supabase.provider';
 
 @Controller()
 export class AppController {
