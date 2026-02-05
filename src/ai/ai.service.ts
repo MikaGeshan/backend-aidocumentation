@@ -16,9 +16,11 @@ export class AiService {
       limit: 5,
     });
 
-    if (!results.length) {
+    const relevant = results.filter((r) => r.score > 0.3);
+
+    if (!relevant.length) {
       return {
-        answer: 'I could not find relevant information',
+        answer: "I couldn't find relevant information in your documents.",
         sources: [],
       };
     }
@@ -37,7 +39,7 @@ export class AiService {
 
     return {
       answer,
-      sources: results.map((r) => ({
+      sources: relevant.map((r) => ({
         fileName: r.payload.fileName,
         chunkIndex: r.payload.chunkIndex,
       })),

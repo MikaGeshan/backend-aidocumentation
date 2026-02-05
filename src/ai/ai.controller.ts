@@ -6,9 +6,7 @@ export class AiController {
   constructor(private readonly aiService: AiService) {}
 
   @Post('chat')
-  async chat(
-    @Body('question') question: string,
-  ): Promise<{ answer: string; sources: unknown[] }> {
+  async chat(@Body('question') question: string) {
     return this.aiService.chat(question);
   }
 }

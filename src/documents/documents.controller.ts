@@ -1,12 +1,13 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Controller, Param, Post } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
 
 @Controller('documents')
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
-  @Post('index')
-  async index(@Body() body: { folderId: string }) {
-    await this.documentsService.indexFolder(body.folderId);
-    return { status: 'indexed' };
+
+  @Post('index/:folderId')
+  index(@Param('folderId') folderId: string) {
+    void this.documentsService.indexFolder(folderId);
+    return { status: 'Indexing started' };
   }
 }
