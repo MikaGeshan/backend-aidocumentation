@@ -1,4 +1,3 @@
-// src/db/supabase.provider.ts
 import { Provider } from '@nestjs/common';
 import { createClient } from '@supabase/supabase-js';
 import { ConfigService } from '@nestjs/config';
