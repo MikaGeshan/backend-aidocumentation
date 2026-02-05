@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { GoogleDriveService } from '../drive/drive.service';
 import { LlmService } from '../llm/llm.service';
 import { QdrantService } from '../qdrant/qdrant.service';
-import pdfParse from 'pdf-parse';
+import * as pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
 import { v4 as uuid } from 'uuid';
 
@@ -51,12 +51,12 @@ export class DocumentsService {
 
     this.logger.log(`Indexing file: ${file.name}`);
 
-    const buffer = await this.googleDriveService.downloadFile(
+    const { buffer, mimeType } = await this.googleDriveService.downloadFile(
       file.id,
-      file.name,
     );
 
-    const text = await this.parseFile(buffer, file.mimeType);
+    const text = await this.parseFile(buffer, mimeType);
+
     if (!text.trim()) return;
 
     const chunks = this.chunkText(text);
