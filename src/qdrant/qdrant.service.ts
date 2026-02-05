@@ -61,6 +61,20 @@ export class QdrantService {
       limit: options?.limit ?? 5,
     });
 
-    return res as SearchResult[];
+    return res
+      .filter((r) => r.payload)
+      .map((r) => {
+        const payload = r.payload as Record<string, unknown>;
+
+        return {
+          score: r.score,
+          payload: {
+            text: payload.text as string,
+            fileName: payload.fileName as string,
+            chunkIndex: payload.chunkIndex as number,
+            fileId: payload.fileId as string,
+          },
+        };
+      });
   }
 }
