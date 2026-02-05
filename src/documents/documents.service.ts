@@ -3,7 +3,7 @@ import { GoogleDriveService } from '../drive/drive.service';
 import { LlmService } from '../llm/llm.service';
 import { QdrantService } from '../qdrant/qdrant.service';
 import mammoth from 'mammoth';
-import { v4 as uuid } from 'uuid';
+import { randomUUID } from 'crypto';
 import { PDFParse } from 'pdf-parse';
 
 interface GoogleDriveFile {
@@ -66,7 +66,7 @@ export class DocumentsService {
 
     await this.qdrantService.upsertChunks(
       chunks.map((chunk, i) => ({
-        id: uuid(),
+        id: randomUUID(),
         vector: embeddings[i],
         payload: {
           subfolderId,
