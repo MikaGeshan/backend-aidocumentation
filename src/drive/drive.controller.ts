@@ -35,8 +35,14 @@ export class GoogleDriveController {
   }
 
   @Get('download/:fileId')
-  download(@Param('fileId') fileId: string, @Res() res): Promise<any> {
-    return this.driveService.downloadFile(fileId, res);
+  async download(@Param('fileId') fileId: string, @Res() res: Response) {
+    const { buffer, name, mimeType } =
+      await this.driveService.downloadFile(fileId);
+
+    res.setHeader('Content-Disposition', `attachment; filename="${name}"`);
+    res.setHeader('Content-Type', mimeType);
+
+    return res.send(buffer);
   }
 
   @Post('create-folder')

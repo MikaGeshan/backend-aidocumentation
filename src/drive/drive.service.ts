@@ -74,7 +74,11 @@ export class GoogleDriveService {
   }
 
   // Download file
-  async downloadFile(fileId: string, res: Response) {
+  async downloadFile(fileId: string): Promise<{
+    buffer: Buffer;
+    name: string;
+    mimeType: string;
+  }> {
     const meta = await this.drive.files.get({
       fileId,
       fields: 'name, mimeType',
@@ -83,31 +87,33 @@ export class GoogleDriveService {
     const { name, mimeType } = meta.data;
 
     if (mimeType === 'application/vnd.google-apps.document') {
-      res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="${name}.docx"`,
-      );
-
-      const stream = await this.drive.files.export(
+      const response = await this.drive.files.export(
         {
           fileId,
           mimeType:
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         },
-        { responseType: 'stream' },
+        { responseType: 'arraybuffer' },
       );
 
-      return stream.data.pipe(res);
+      return {
+        buffer: Buffer.from(response.data as ArrayBuffer),
+        name: `${name}.docx`,
+        mimeType:
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      };
     }
 
-    res.setHeader('Content-Disposition', `attachment; filename="${name}"`);
-
-    const stream = await this.drive.files.get(
+    const response = await this.drive.files.get(
       { fileId, alt: 'media' },
-      { responseType: 'stream' },
+      { responseType: 'arraybuffer' },
     );
 
-    return stream.data.pipe(res);
+    return {
+      buffer: Buffer.from(response.data as ArrayBuffer),
+      name: name ?? 'file',
+      mimeType: mimeType ?? 'application/octet-stream',
+    };
   }
 
   // Create a folder
