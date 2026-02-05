@@ -85,7 +85,7 @@ export class DocumentsService {
   private async parseFile(buffer: Buffer, mimeType: string): Promise<string> {
     switch (mimeType) {
       case 'application/pdf': {
-        const data = await PDFParse(buffer);
+        const data = new PDFParse(buffer);
         return data.text;
       }
 
