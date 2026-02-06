@@ -4,8 +4,8 @@ import axios from 'axios';
 @Injectable()
 export class LlmService {
   private readonly apiKey = process.env.DEEPSEEK_API_KEY;
-  private readonly baseUrl = process.env.DEEPSEEK_URL;
-  private readonly model = process.env.DEEPSEEK_MODEL;
+  private readonly baseUrl = process.env.DEEPSEEK_EMBEDDING_URL;
+  private readonly model = process.env.DEEPSEEK_EMBEDDING_MODEL;
 
   async embedTexts(texts: string[]): Promise<number[][]> {
     const res = await axios.post(
