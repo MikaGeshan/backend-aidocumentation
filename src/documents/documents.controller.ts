@@ -7,7 +7,7 @@ export class DocumentsController {
 
   @Post('index/:folderId')
   index(@Param('folderId') folderId: string) {
-    void this.documentsService.indexFolder(folderId);
+    await this.documentsService.indexFolder(folderId);
     return { status: 'Indexing started' };
   }
 }
