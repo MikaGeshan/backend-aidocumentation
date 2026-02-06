@@ -9,7 +9,7 @@ export class LlmService {
 
   async embedTexts(texts: string[]): Promise<number[][]> {
     const res = await axios.post(
-      `${this.baseUrl}/embeddings`,
+      `${this.baseUrl}`,
       {
         model: this.model,
         input: texts,
