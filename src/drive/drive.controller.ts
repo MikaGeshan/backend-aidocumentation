@@ -7,6 +7,7 @@ import {
   Query,
   Param,
   Res,
+  BadRequestException,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { GoogleDriveService } from './drive.service';
@@ -70,6 +71,20 @@ export class GoogleDriveController {
     @Body('filePath') filePath: string,
   ): Promise<any> {
     return this.driveService.uploadFile(name, parentFolderId, filePath);
+  }
+
+  @Post('sync-codebase')
+  async syncCodebase(
+    @Body('repoUrl') repoUrl: string,
+    @Body('branch') branch: string,
+    @Body('token') token: string,
+    @Body('folderId') folderId: string,
+  ): Promise<any> {
+    if (!repoUrl) throw new BadRequestException('Missing repoUrl');
+    const actualToken = token || process.env.CODEBASE_ACCESS_TOKEN;
+    if (!actualToken) throw new BadRequestException('Missing access token');
+    const rootFolderId = folderId || process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID || '1bkp3mxSo_3BHMkY91Nqi0ZfSw8XqMhp_';
+    return this.driveService.syncCodebase(repoUrl, branch || 'main', actualToken, rootFolderId);
   }
 
   @Delete()

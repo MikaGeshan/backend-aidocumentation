@@ -10,10 +10,84 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GoogleDriveService } from '../drive/drive.service';
 import { DocumentsService } from './documents.service';
+import { LlmService } from '../llm/llm.service';
 import { writeFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+
+// Data Transfer Objects (DTOs) for ValidationPipe compatibility
+export class ListReposDto {
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+
+  @IsString()
+  @IsOptional()
+  host?: string;
+}
+
+export class AutoSyncDto {
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+
+  @IsString()
+  @IsNotEmpty()
+  projectContext: string;
+
+  @IsString()
+  @IsOptional()
+  host?: string;
+
+  @IsString()
+  @IsOptional()
+  branch?: string;
+
+  @IsString()
+  @IsOptional()
+  folderId?: string;
+}
+
+export class GitTreeDto {
+  @IsString()
+  @IsOptional()
+  repoUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  token?: string;
+
+  @IsString()
+  @IsOptional()
+  branch?: string;
+
+  @IsString()
+  @IsOptional()
+  host?: string;
+}
+
+export class GitFileContentDto {
+  @IsString()
+  @IsOptional()
+  repoUrl?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  filePath: string;
+
+  @IsString()
+  @IsOptional()
+  token?: string;
+
+  @IsString()
+  @IsOptional()
+  branch?: string;
+
+  @IsString()
+  @IsOptional()
+  host?: string;
+}
 
 // Data Transfer Objects (DTOs) for ValidationPipe compatibility
 export class ConvertDocsDto {
@@ -61,6 +135,7 @@ export class ApiController {
   constructor(
     private readonly driveService: GoogleDriveService,
     private readonly documentsService: DocumentsService,
+    private readonly llmService: LlmService,
   ) {}
 
   @Post('convert-docs')
@@ -129,5 +204,101 @@ export class ApiController {
     return {
       message: 'Document Deleted.',
     };
+  }
+
+  @Post('list-repos')
+  async listRepos(@Body() dto: ListReposDto) {
+    const repos = await this.driveService.listRepos(dto.token, dto.host);
+    return repos;
+  }
+
+  @Post('auto-sync')
+  async autoSync(@Body() dto: AutoSyncDto) {
+    const repos = await this.driveService.listRepos(dto.token, dto.host);
+    if (!repos.length) {
+      return { success: false, message: 'No repositories found for this token.' };
+    }
+
+    const system = `You are a Repository Selector assistant.
+Analyze the user's request and the list of available repositories.
+Select the single repository URL that best matches the user's intent.
+If no repository matches, output "NONE".
+Output ONLY the matched repository URL, or "NONE" if there is no match. Do not write any other explanation or text.`;
+
+    const userPrompt = `User request: "${dto.projectContext}"
+
+Available Repositories:
+${repos.map((r, i) => `${i + 1}. Name: ${r.name}, URL: ${r.url}, Description: ${r.description}`).join('\n')}`;
+
+    const llmResponse = await this.llmService.chat({
+      system,
+      user: userPrompt,
+    });
+
+    const matchedUrl = llmResponse.trim();
+    if (!matchedUrl || matchedUrl === 'NONE' || !matchedUrl.startsWith('http')) {
+      return {
+        success: false,
+        message: `Could not match a repository automatically. (LLM returned: ${matchedUrl})`,
+        availableRepos: repos.map(r => r.name),
+      };
+    }
+
+    // Find the repo details to get the name
+    const chosenRepo = repos.find(r => r.url === matchedUrl);
+    const chosenName = chosenRepo ? chosenRepo.name : 'Matched Repository';
+
+    const rootFolderId = dto.folderId || process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID || '1bkp3mxSo_3BHMkY91Nqi0ZfSw8XqMhp_';
+    
+    // Trigger sync
+    const syncResult = await this.driveService.syncCodebase(
+      matchedUrl,
+      dto.branch || 'main',
+      dto.token,
+      rootFolderId,
+    );
+
+    return {
+      success: true,
+      chosenRepo: chosenName,
+      chosenUrl: matchedUrl,
+      syncResult,
+    };
+  }
+
+  @Post('git-tree')
+  async getGitTree(@Body() dto: GitTreeDto) {
+    const repoUrl = dto.repoUrl || process.env.GITLAB_REPO;
+    const token = dto.token || process.env.GITLAB_TOKEN;
+    const branch = dto.branch || process.env.GITLAB_BRANCH || 'main';
+    const host = dto.host || (dto.repoUrl ? dto.host : process.env.GITLAB_HOST);
+
+    if (!repoUrl || !token) {
+      return { success: false, message: 'Git repository is not configured.' };
+    }
+
+    const files = await this.driveService.getGitTree(repoUrl, branch, token, host);
+    return { success: true, files, repoUrl };
+  }
+
+  @Post('git-file')
+  async getGitFileContent(@Body() dto: GitFileContentDto) {
+    const repoUrl = dto.repoUrl || process.env.GITLAB_REPO;
+    const token = dto.token || process.env.GITLAB_TOKEN;
+    const branch = dto.branch || process.env.GITLAB_BRANCH || 'main';
+    const host = dto.host || (dto.repoUrl ? dto.host : process.env.GITLAB_HOST);
+
+    if (!repoUrl || !token) {
+      throw new BadRequestException('Git repository is not configured.');
+    }
+
+    const content = await this.driveService.getGitFileContent(
+      repoUrl,
+      dto.filePath,
+      branch,
+      token,
+      host,
+    );
+    return { success: true, content };
   }
 }
