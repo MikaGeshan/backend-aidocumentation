@@ -22,16 +22,25 @@ export class GoogleDriveController {
 
   @Get('folders')
   async getFolders(@Query('folderId') folderId: string): Promise<any> {
+    if (!folderId || folderId === 'undefined') {
+      return [];
+    }
     return this.driveService.folderList(folderId);
   }
 
   @Get('files')
   async getFiles(@Query('subFolderId') subFolderId: string): Promise<any> {
+    if (!subFolderId || subFolderId === 'undefined') {
+      return [];
+    }
     return this.driveService.fileList(subFolderId);
   }
 
   @Get('all-files/:folderId')
   async getAllFiles(@Param('folderId') folderId: string): Promise<any> {
+    if (!folderId || folderId === 'undefined') {
+      return [];
+    }
     return await this.driveService.getAllFilesRecursively(folderId);
   }
 

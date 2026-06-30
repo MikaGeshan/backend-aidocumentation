@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { google } from 'googleapis';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 import type { drive_v3 } from 'googleapis';
 import type { Response } from 'express';
 
@@ -9,12 +10,36 @@ export class GoogleDriveService {
   private drive: drive_v3.Drive;
 
   constructor() {
-    const credentials = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-    if (!credentials) {
-      throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON is not set');
+    let credentials: any;
+    const filePath = join(process.cwd(), 'GOOGLE_SERVICE_ACCOUNT.json');
+
+    if (existsSync(filePath)) {
+      try {
+        const fileContent = readFileSync(filePath, 'utf8');
+        credentials = JSON.parse(fileContent);
+      } catch (err) {
+        console.error('Failed to parse GOOGLE_SERVICE_ACCOUNT.json file:', err.message);
+      }
     }
+
+    if (!credentials) {
+      const envCreds = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+      if (!envCreds) {
+        throw new Error(
+          'Neither GOOGLE_SERVICE_ACCOUNT.json file nor GOOGLE_SERVICE_ACCOUNT_JSON env variable is configured',
+        );
+      }
+      try {
+        credentials = JSON.parse(envCreds);
+      } catch (err) {
+        throw new Error(
+          `Failed to parse GOOGLE_SERVICE_ACCOUNT_JSON environment variable: ${err.message}`,
+        );
+      }
+    }
+
     const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(credentials),
+      credentials,
       scopes: ['https://www.googleapis.com/auth/drive'],
     });
 

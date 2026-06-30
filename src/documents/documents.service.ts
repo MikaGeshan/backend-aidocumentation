@@ -82,7 +82,7 @@ export class DocumentsService {
   /**
    * Parse PDF / DOCX
    */
-  private async parseFile(buffer: Buffer, mimeType: string): Promise<string> {
+  public async parseFile(buffer: Buffer, mimeType: string): Promise<string> {
     switch (mimeType) {
       case 'application/pdf': {
         const data = await pdf(buffer);
